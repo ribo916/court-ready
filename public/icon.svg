@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Court Ready icon">
+  <rect width="512" height="512" rx="96" fill="#f7f5ef"/>
+  <circle cx="256" cy="256" r="152" fill="#2f6f56"/>
+  <path d="M150 276c68-15 144-15 212 0" fill="none" stroke="#f7f5ef" stroke-width="24" stroke-linecap="round"/>
+  <path d="M256 104v304" fill="none" stroke="#f7f5ef" stroke-width="18" stroke-linecap="round" opacity=".75"/>
+  <circle cx="256" cy="256" r="46" fill="#f4d06f"/>
+</svg>
