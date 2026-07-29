@@ -55,3 +55,4 @@ Shipped scope:
 ## Changelog
 
 - 0.1: Established project foundation, documentation, PWA setup, and the first Today's Dashboard.
+- 0.1.1: Hardened PWA behavior so service workers do not interfere with Next.js development.

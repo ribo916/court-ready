@@ -34,6 +34,12 @@ State stays local to client components and hooks. There is no global state libra
 
 Daily dashboard state is stored in local storage under a date-specific key. Persisted data is limited to checklist completion, water, protein, and notes.
 
+## PWA Strategy
+
+The service worker is registered only in production. Development unregisters existing Court Ready service workers and deletes Court Ready caches because stale cached documents can fight Next.js HMR and cause reload loops.
+
+In production, navigation requests are network-first with cache fallback, `/_next/` assets are left to Next.js, and same-origin static assets can use cache-first behavior.
+
 ## Design System
 
 The 0.1 palette uses warm off-white surfaces, grounded green actions, muted blue hydration cues, and restrained amber recovery accents. Lucide icons provide recognizable controls and section anchors.
