@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
-import type { Viewport } from "next";
-import { PwaRegister } from "@/components/pwa-register";
-import "./globals.css";
+import type { Metadata, Viewport } from "next"
+
+import { PwaRegister } from "@/components/pwa-register"
+import "./globals.css"
 
 export const metadata: Metadata = {
   applicationName: "Court Ready",
@@ -13,23 +13,28 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Court Ready",
   },
-};
+}
 
 export const viewport: Viewport = {
-  themeColor: "#f7f5ef",
-};
+  // Matches the surface token in globals.css for each scheme.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f5ef" },
+    { media: "(prefers-color-scheme: dark)", color: "#15161a" },
+  ],
+  viewportFit: "cover",
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <PwaRegister />
         {children}
       </body>
     </html>
-  );
+  )
 }

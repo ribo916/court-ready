@@ -2,43 +2,83 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Court Ready palette.
+ *
+ * Every colour the product uses is declared once here as a semantic token and
+ * consumed as a Tailwind utility (`bg-panel`, `text-ink-muted`, `border-brand`).
+ * Components must not hardcode hex values: that is what broke dark mode and let
+ * the shadcn primitives drift away from the hand-built palette.
+ *
+ * Light and dark values live together in `light-dark()`, so the theme follows
+ * the system by default and can be forced with a `.light` or `.dark` class.
+ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-court-sans);
   --font-mono: var(--font-court-mono);
   --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
+
+  /* Surfaces */
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-inset: var(--inset);
+  --color-track: var(--track);
+  --color-hairline: var(--hairline);
+  --color-hairline-soft: var(--hairline-soft);
+
+  /* Text */
+  --color-ink: var(--ink);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  /* Grounded green: actions and completion */
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-line: var(--brand-line);
+  --color-brand-ink: var(--brand-ink);
+
+  /* Muted blue: hydration */
+  --color-water: var(--water);
+  --color-water-soft: var(--water-soft);
+  --color-water-ink: var(--water-ink);
+
+  /* Olive: fuel and protein */
+  --color-fuel: var(--fuel);
+  --color-fuel-soft: var(--fuel-soft);
+  --color-fuel-ink: var(--fuel-ink);
+
+  /* Restrained amber: recovery accents */
+  --color-recover: var(--recover);
+  --color-recover-soft: var(--recover-soft);
+  --color-recover-ink: var(--recover-ink);
+
+  --color-alert: var(--alert);
+
+  /* shadcn primitives, mapped onto the palette above */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,87 +89,86 @@
 }
 
 :root {
+  color-scheme: light dark;
+
   --font-court-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   --font-court-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  --surface: light-dark(#f7f5ef, #15161a);
+  --panel: light-dark(#fffdf8, #1c1e22);
+  --inset: light-dark(#ffffff, #232529);
+  --track: light-dark(#e7e0d3, #2b2e33);
+  --hairline: light-dark(#ddd7ca, #2e3138);
+  --hairline-soft: light-dark(#e2ddd2, #34383f);
+
+  --ink: light-dark(#20231f, #eceae4);
+  --ink-subtle: light-dark(#5c5749, #bdb9b0);
+  --ink-muted: light-dark(#6b6558, #a49f95);
+  --ink-faint: light-dark(#8f8676, #7d7a73);
+
+  --brand: light-dark(#2f6f56, #5fa886);
+  --brand-strong: light-dark(#1d5f4a, #7cc3a1);
+  --brand-soft: light-dark(#eef6ef, #1e2e28);
+  --brand-line: light-dark(#d7e2d9, #2c473c);
+  --brand-ink: light-dark(#2c6149, #8fd0b0);
+
+  --water: light-dark(#2f6f96, #6aa8cc);
+  --water-soft: light-dark(#e8edf3, #1b2a34);
+  --water-ink: light-dark(#2b4b6b, #93c4de);
+
+  --fuel: light-dark(#6b7f32, #a9bd63);
+  --fuel-soft: light-dark(#eef1e4, #24291a);
+  --fuel-ink: light-dark(#4a5b1d, #bdd07d);
+
+  --recover: light-dark(#8d4b31, #d0865f);
+  --recover-soft: light-dark(#f4e8dc, #2f2119);
+  --recover-ink: light-dark(#7c3f27, #e0a184);
+
+  --alert: light-dark(#b64b34, #e07a5f);
+
+  --background: var(--surface);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: light-dark(#ffffff, #0f2019);
+  --secondary: var(--track);
+  --secondary-foreground: var(--ink);
+  --muted: light-dark(#f1eee7, #26282d);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--brand-soft);
+  --accent-foreground: var(--brand-ink);
+  --destructive: var(--alert);
+  --border: var(--hairline);
+  --input: var(--hairline);
+  --ring: var(--brand);
+}
+
+.light {
+  color-scheme: light;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
     @apply font-sans;
   }
+
+  body {
+    @apply bg-surface text-ink;
+  }
+
   button,
   textarea {
     font: inherit;

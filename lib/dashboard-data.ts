@@ -1,23 +1,10 @@
-import {
-  Bed,
-  Dumbbell,
-  Moon,
-  NotebookText,
-  ShowerHead,
-  StretchHorizontal,
-} from "lucide-react"
-
-import type {
-  DashboardItem,
-  RoutineItem,
-  Supplement,
-  WorkoutBlock,
-} from "@/types/dashboard"
+import type { DashboardItem, RoutineItem, Supplement } from "@/types/dashboard"
 
 export const waterTarget = 8
 export const proteinTarget = 130
 
-export const todaysChecklist: DashboardItem[] = [
+/** Anchors that repeat every day regardless of which template is scheduled. */
+export const baseChecklist: DashboardItem[] = [
   {
     id: "morning-water",
     label: "Start with water",
@@ -40,13 +27,6 @@ export const todaysChecklist: DashboardItem[] = [
     category: "fuel",
   },
   {
-    id: "walk-reset",
-    label: "Easy walk",
-    detail: "Ten quiet minutes, no pace target.",
-    time: "Midday",
-    category: "move",
-  },
-  {
     id: "evening-downshift",
     label: "Evening downshift",
     detail: "Screens dim, gentle stretch, plan tomorrow.",
@@ -54,19 +34,6 @@ export const todaysChecklist: DashboardItem[] = [
     category: "recover",
   },
 ]
-
-export const todaysWorkout: WorkoutBlock = {
-  title: "Strength Reset",
-  duration: "22 min",
-  intensity: "Easy",
-  focus: "Legs, hips, shoulders, and court-ready balance.",
-  steps: [
-    "Chair squats, 2 x 8",
-    "Incline pushups, 2 x 6",
-    "Suitcase carry, 3 x 30 seconds per side",
-    "Single-leg balance, 2 x 20 seconds per side",
-  ],
-}
 
 export const supplements: Supplement[] = [
   {
@@ -94,39 +61,28 @@ export const eveningRoutine: RoutineItem[] = [
     id: "warm-shower",
     label: "Warm shower",
     detail: "Signal the day is closing.",
-    icon: ShowerHead,
+    icon: "shower-head",
   },
   {
     id: "easy-stretch",
     label: "Easy stretch",
     detail: "Hips, calves, chest. Nothing heroic.",
-    icon: StretchHorizontal,
+    icon: "stretch-horizontal",
   },
   {
     id: "journal",
     label: "One note",
     detail: "What helped your energy today?",
-    icon: NotebookText,
+    icon: "notebook-text",
   },
   {
     id: "sleep",
     label: "Sleep window",
     detail: "Protect tomorrow's legs.",
-    icon: Moon,
+    icon: "moon",
   },
 ]
 
-export const focusCards = [
-  {
-    label: "Recovery",
-    value: "First",
-    detail: "No intensity until the basics are handled.",
-    icon: Bed,
-  },
-  {
-    label: "Strength",
-    value: "Light",
-    detail: "Small deposits, clean form.",
-    icon: Dumbbell,
-  },
-]
+/** Checklist ids that the supplement and evening cards own. */
+export const supplementItemId = (id: string) => `supplement:${id}`
+export const routineItemId = (id: string) => `routine:${id}`
