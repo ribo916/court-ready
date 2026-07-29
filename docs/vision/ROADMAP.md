@@ -66,4 +66,5 @@ Version 0.1: Today's Dashboard. Greeting, next action, checklist, workout, suppl
 - 0.1: Established project foundation, documentation, PWA setup, and the first Today's Dashboard.
 - 0.1.1: Hardened PWA behavior so service workers do not interfere with Next.js development.
 - 0.2: Program rotation, morning check-in, adaptive days, durable versioned storage with export and restore, history strip, design tokens with dark mode, and the first test suite.
+- 0.2.2: Export via the iOS share sheet with download and clipboard fallbacks, a permissive restore picker, and backup reminders. The 0.2 download-link export could silently do nothing inside an installed iOS app.
 - 0.2.1: Personalised the plan to weekend play, raised protein and water targets to the athlete's stats, replaced the supplement stack, and changed the played-yesterday rule from an override to a readiness penalty so it stops cancelling every Sunday.

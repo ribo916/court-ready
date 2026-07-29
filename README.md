@@ -56,7 +56,17 @@ Version 0.2 includes:
 
 The app persists checklist completion, water, protein, notes, and the morning check-in in local storage. No backend, authentication, database, or analytics are included.
 
-Because local storage can be evicted by the browser, **export a backup now and then**. The button is on the dashboard.
+## Backups
+
+This is a single-device app. The data lives in one browser's local storage, so the backup has to come off that device.
+
+On an installed iOS app, **Export** opens the native share sheet — send it to Files, iCloud Drive, or mail it to yourself. On desktop it downloads a JSON file. **Copy** is the last-resort fallback: the whole backup on the clipboard, ready to paste into Notes.
+
+A download link alone is not enough here. Installed iOS apps frequently swallow `<a download>` in standalone mode, which is why the share sheet is tried first.
+
+The card starts asking for a backup once there are three days of history and nothing has ever been exported, then every 14 days after an export.
+
+Deleting the app from your home screen, or clearing website data, destroys the history instantly and unrecoverably. Daily use of an installed app protects it from Safari's usual 7-day storage cap, but nothing protects it from those two.
 
 ## The Week
 

@@ -5,6 +5,10 @@ export const schemaVersion = 2
 
 const dayKeyPrefix = "court-ready:v2:day:"
 const legacyKeyPrefix = "court-ready-dashboard-v1:"
+const metaKey = "court-ready:v2:meta"
+
+/** Days of unbacked-up history before the backup card starts asking. */
+export const backupNudgeDays = 14
 
 /** Roughly thirteen months of history, which is all the app ever reads back. */
 const retentionDays = 400
@@ -397,6 +401,80 @@ export function exportData(
   storage: StorageLike | null = defaultStorage()
 ): string {
   return JSON.stringify(buildExportPayload(readAllRecords(storage)), null, 2)
+}
+
+// --- Backup reminders --------------------------------------------------------
+
+export type AppMeta = {
+  lastExportedAt: DateKey | null
+}
+
+export function readMeta(
+  storage: StorageLike | null = defaultStorage()
+): AppMeta {
+  if (!storage) {
+    return { lastExportedAt: null }
+  }
+
+  const parsed = parseJson(storage.getItem(metaKey))
+  const value =
+    parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>).lastExportedAt
+      : null
+
+  return { lastExportedAt: isDateKey(value) ? value : null }
+}
+
+export function markExported(
+  date: DateKey,
+  storage: StorageLike | null = defaultStorage()
+): void {
+  if (!storage) {
+    return
+  }
+
+  try {
+    storage.setItem(metaKey, JSON.stringify({ lastExportedAt: date }))
+  } catch {
+    return
+  }
+
+  notify()
+}
+
+/**
+ * Local storage is the only copy, and losing it is silent and unrecoverable.
+ * Nudge once there is history worth losing and it has gone unbacked-up.
+ */
+export function shouldNudgeBackup(
+  today: DateKey,
+  meta: AppMeta,
+  recordedDays: number
+): boolean {
+  if (recordedDays === 0) {
+    return false
+  }
+
+  if (!meta.lastExportedAt) {
+    return recordedDays >= 3
+  }
+
+  return daysBetweenDateKeys(meta.lastExportedAt, today) >= backupNudgeDays
+}
+
+/**
+ * Counts stored day keys without parsing them. This runs on every render of the
+ * backup card, so it must stay cheap; empty days are pruned after three days,
+ * which makes a key count a close enough proxy for "there is history here".
+ */
+export function countStoredDays(
+  storage: StorageLike | null = defaultStorage()
+): number {
+  if (!storage) {
+    return 0
+  }
+
+  return storedDateKeys(storage).length
 }
 
 export type ImportResult = {

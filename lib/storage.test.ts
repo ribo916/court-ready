@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest"
 
+import { shiftDateKey } from "@/lib/date"
 import {
+  backupNudgeDays,
+  countStoredDays,
   createEmptyRecord,
   exportData,
+  markExported,
+  readMeta,
+  shouldNudgeBackup,
   importData,
   isEmptyRecord,
   migrateLegacyRecords,
@@ -265,6 +271,56 @@ describe("pruneOldRecords", () => {
     writeDayRecord({ ...createEmptyRecord("2027-01-01"), water: 1 }, storage)
 
     expect(pruneOldRecords(today, storage)).toBe(0)
+  })
+})
+
+describe("backup reminders", () => {
+  it("starts with no recorded export", () => {
+    expect(readMeta(storage).lastExportedAt).toBeNull()
+  })
+
+  it("round-trips the last export date", () => {
+    markExported(today, storage)
+
+    expect(readMeta(storage).lastExportedAt).toBe(today)
+  })
+
+  it("ignores a corrupt meta entry", () => {
+    storage.setItem("court-ready:v2:meta", "{not json")
+    expect(readMeta(storage).lastExportedAt).toBeNull()
+
+    storage.setItem("court-ready:v2:meta", JSON.stringify({ lastExportedAt: 42 }))
+    expect(readMeta(storage).lastExportedAt).toBeNull()
+  })
+
+  it("counts stored days without parsing them", () => {
+    expect(countStoredDays(storage)).toBe(0)
+
+    writeDayRecord({ ...createEmptyRecord("2026-07-26"), water: 1 }, storage)
+    writeDayRecord({ ...createEmptyRecord(today), water: 1 }, storage)
+
+    expect(countStoredDays(storage)).toBe(2)
+  })
+
+  it("stays quiet before there is anything to lose", () => {
+    expect(shouldNudgeBackup(today, { lastExportedAt: null }, 0)).toBe(false)
+    expect(shouldNudgeBackup(today, { lastExportedAt: null }, 2)).toBe(false)
+  })
+
+  it("asks once a few days of history exist and nothing was ever exported", () => {
+    expect(shouldNudgeBackup(today, { lastExportedAt: null }, 3)).toBe(true)
+  })
+
+  it("goes quiet right after an export", () => {
+    expect(shouldNudgeBackup(today, { lastExportedAt: today }, 30)).toBe(false)
+  })
+
+  it("asks again once the backup goes stale", () => {
+    const dayBefore = shiftDateKey(today, -(backupNudgeDays - 1))
+    const onThreshold = shiftDateKey(today, -backupNudgeDays)
+
+    expect(shouldNudgeBackup(today, { lastExportedAt: dayBefore }, 30)).toBe(false)
+    expect(shouldNudgeBackup(today, { lastExportedAt: onThreshold }, 30)).toBe(true)
   })
 })
 

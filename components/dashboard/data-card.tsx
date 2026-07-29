@@ -1,34 +1,90 @@
 "use client"
 
-import { useRef, useState } from "react"
-import { Download, Upload } from "lucide-react"
+import { useRef, useState, useSyncExternalStore } from "react"
+import { ClipboardCopy, Download, Upload } from "lucide-react"
 
 import { Card, CardHeading } from "@/components/dashboard/card"
 import { Button } from "@/components/ui/button"
 import type { DateKey } from "@/lib/date"
-import { exportData, importData } from "@/lib/storage"
+import {
+  countStoredDays,
+  exportData,
+  importData,
+  markExported,
+  readMeta,
+  shouldNudgeBackup,
+  subscribeToStorage,
+} from "@/lib/storage"
 
 /**
- * Local storage is the only copy of this data and browsers can evict it, so a
+ * Local storage is the only copy of this data and it lives on one device, so a
  * manual backup is the safety net for the whole product.
  */
 export function DataCard({ today }: { today: DateKey }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<string | null>(null)
 
-  function handleExport() {
-    const blob = new Blob([exportData()], { type: "application/json" })
+  // A boolean snapshot compares by value, so this stays stable across renders.
+  const needsBackup = useSyncExternalStore(
+    subscribeToStorage,
+    () => shouldNudgeBackup(today, readMeta(), countStoredDays()),
+    () => false
+  )
+
+  function fallbackToDownload(json: string, filename: string) {
+    const blob = new Blob([json], { type: "application/json" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
 
     link.href = url
-    link.download = `court-ready-${today}.json`
+    link.download = filename
     document.body.append(link)
     link.click()
     link.remove()
-    URL.revokeObjectURL(url)
 
+    // Revoking immediately can cancel the download before the blob is read.
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+  }
+
+  async function handleExport() {
+    const json = exportData()
+    const filename = `court-ready-${today}.json`
+
+    /*
+     * An installed iOS app cannot reliably trigger an <a download>; standalone
+     * mode often swallows it. The share sheet is the dependable route to Files
+     * or iCloud Drive, so try it first and keep the download as the desktop
+     * path.
+     */
+    const file = new File([json], filename, { type: "application/json" })
+
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "Court Ready backup" })
+        markExported(today)
+        setStatus("Shared. Save it to Files or iCloud Drive, not just this phone.")
+        return
+      } catch (error) {
+        // Cancelling the sheet is not a failure worth reporting.
+        if ((error as Error)?.name === "AbortError") {
+          return
+        }
+      }
+    }
+
+    fallbackToDownload(json, filename)
+    markExported(today)
     setStatus("Backup downloaded.")
+  }
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(exportData())
+      markExported(today)
+      setStatus("Copied. Paste it into Notes or an email to yourself.")
+    } catch {
+      setStatus("Could not copy. Try Export instead.")
+    }
   }
 
   async function handleImport(file: File) {
@@ -55,9 +111,16 @@ export function DataCard({ today }: { today: DateKey }) {
     <Card>
       <CardHeading eyebrow="Your data" title="Backup" />
       <p className="mt-2 text-sm leading-6 text-ink-subtle">
-        Everything lives on this device. Export now and then so a cleared
-        browser cannot take your history with it.
+        Everything lives on this device only. Deleting the app from your home
+        screen, or clearing website data, takes your history with it.
       </p>
+
+      {needsBackup ? (
+        <p className="mt-3 rounded-lg border border-recover bg-recover-soft px-3 py-2 text-sm leading-6 text-recover-ink">
+          You have history that is not backed up anywhere. Export it and save it
+          off this phone.
+        </p>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="lg" onClick={handleExport}>
@@ -73,10 +136,16 @@ export function DataCard({ today }: { today: DateKey }) {
           <Upload aria-hidden="true" />
           Restore
         </Button>
+        <Button type="button" variant="ghost" size="lg" onClick={handleCopy}>
+          <ClipboardCopy aria-hidden="true" />
+          Copy
+        </Button>
         <input
           ref={fileInputRef}
           type="file"
-          accept="application/json,.json"
+          // iOS maps JSON to inconsistent UTIs, so keep the filter permissive
+          // or the picker greys out the very file it just wrote.
+          accept=".json,application/json,text/plain"
           className="sr-only"
           onChange={(event) => {
             const file = event.target.files?.[0]
@@ -90,7 +159,11 @@ export function DataCard({ today }: { today: DateKey }) {
         />
       </div>
 
-      <p className="mt-3 min-h-5 text-sm text-ink-muted" role="status" aria-live="polite">
+      <p
+        className="mt-3 min-h-5 text-sm text-ink-muted"
+        role="status"
+        aria-live="polite"
+      >
         {status}
       </p>
     </Card>
