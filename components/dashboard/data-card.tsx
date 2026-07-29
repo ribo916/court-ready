@@ -7,6 +7,11 @@ import { Card, CardHeading } from "@/components/dashboard/card"
 import { Button } from "@/components/ui/button"
 import type { DateKey } from "@/lib/date"
 import {
+  buildBackupFilename,
+  isStandaloneDisplay,
+  planShare,
+} from "@/lib/share"
+import {
   countStoredDays,
   exportData,
   importData,
@@ -46,23 +51,38 @@ export function DataCard({ today }: { today: DateKey }) {
     setTimeout(() => URL.revokeObjectURL(url), 10_000)
   }
 
+  async function copyToClipboard(json: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(json)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Export must never be a no-op. Share the file if the platform will take it,
+   * fall back to plainer share shapes, then to a download, and on an installed
+   * app where downloads are swallowed, put the backup on the clipboard rather
+   * than claiming success.
+   */
   async function handleExport() {
     const json = exportData()
-    const filename = `court-ready-${today}.json`
+    const plan = planShare(
+      json,
+      today,
+      navigator.canShare?.bind(navigator)
+    )
 
-    /*
-     * An installed iOS app cannot reliably trigger an <a download>; standalone
-     * mode often swallows it. The share sheet is the dependable route to Files
-     * or iCloud Drive, so try it first and keep the download as the desktop
-     * path.
-     */
-    const file = new File([json], filename, { type: "application/json" })
-
-    if (navigator.canShare?.({ files: [file] })) {
+    if (plan.data) {
       try {
-        await navigator.share({ files: [file], title: "Court Ready backup" })
+        await navigator.share(plan.data)
         markExported(today)
-        setStatus("Shared. Save it to Files or iCloud Drive, not just this phone.")
+        setStatus(
+          plan.strategy === "text"
+            ? "Shared as text. Paste it somewhere off this phone."
+            : "Shared. Save it to Files or iCloud Drive, not just this phone."
+        )
         return
       } catch (error) {
         // Cancelling the sheet is not a failure worth reporting.
@@ -72,19 +92,34 @@ export function DataCard({ today }: { today: DateKey }) {
       }
     }
 
-    fallbackToDownload(json, filename)
+    if (isStandaloneDisplay()) {
+      const copied = await copyToClipboard(json)
+
+      if (copied) {
+        markExported(today)
+        setStatus(
+          "Your phone would not share the file, so the backup is on your clipboard. Paste it into Notes or an email."
+        )
+      } else {
+        setStatus("Could not export here. Open the app in Safari and try again.")
+      }
+
+      return
+    }
+
+    fallbackToDownload(json, buildBackupFilename(today, "json"))
     markExported(today)
     setStatus("Backup downloaded.")
   }
 
   async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(exportData())
+    if (await copyToClipboard(exportData())) {
       markExported(today)
       setStatus("Copied. Paste it into Notes or an email to yourself.")
-    } catch {
-      setStatus("Could not copy. Try Export instead.")
+      return
     }
+
+    setStatus("Could not copy. Try Export instead.")
   }
 
   async function handleImport(file: File) {
@@ -145,7 +180,8 @@ export function DataCard({ today }: { today: DateKey }) {
           type="file"
           // iOS maps JSON to inconsistent UTIs, so keep the filter permissive
           // or the picker greys out the very file it just wrote.
-          accept=".json,application/json,text/plain"
+          // The share path may hand iOS a .txt, so restore must accept it back.
+          accept=".json,.txt,application/json,text/plain"
           className="sr-only"
           onChange={(event) => {
             const file = event.target.files?.[0]

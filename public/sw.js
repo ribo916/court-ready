@@ -6,7 +6,7 @@
  * Bump CACHE_VERSION on every release. A frozen cache name meant returning
  * users could hold stale assets forever.
  */
-const CACHE_VERSION = "0.2.2"
+const CACHE_VERSION = "0.2.3"
 const CACHE_NAME = `court-ready-${CACHE_VERSION}`
 
 const APP_SHELL = ["/", "/manifest.webmanifest", "/icon.svg", "/icon-192.png"]
