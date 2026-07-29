@@ -62,7 +62,9 @@ This is a single-device app. The data lives in one browser's local storage, so t
 
 On an installed iOS app, **Export** opens the native share sheet — send it to Files, iCloud Drive, or mail it to yourself. On desktop it downloads a JSON file. **Copy** puts the whole backup on the clipboard, ready to paste into Notes.
 
-Getting this working took three attempts, so the reasoning is worth recording. A download link alone is not enough: installed iOS apps swallow `<a download>` in standalone mode. Nor is a single `navigator.share` call with a JSON file, because WebKit only accepts a restricted set of file types and rejects `application/json`. `lib/share.ts` therefore probes for the best shape the platform will take — a `.json` file, then a `.txt` file with the same bytes, then the raw text — and the card falls back to the clipboard rather than ever appearing to do nothing.
+A download link alone is not enough: installed iOS apps swallow `<a download>` in standalone mode, so the share sheet is tried first. `lib/share.ts` probes for the best shape the platform will take — a `.json` file, then a `.txt` file with the same bytes, then the raw text — and the card falls back to the clipboard rather than ever appearing to do nothing.
+
+In practice iOS accepts the `.json` file on the first try, so the lower rungs are insurance, not the normal path. Emailing yourself the Copy output is an equally valid backup, and has the advantage of living off the device by default.
 
 The card starts asking for a backup once there are three days of history and nothing has ever been exported, then every 14 days after an export.
 
