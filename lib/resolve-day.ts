@@ -38,6 +38,11 @@ type Adaptation = {
 /**
  * Recovery before intensity, expressed as behavior rather than a slogan.
  * Rules are ordered; the first match wins.
+ *
+ * Playing yesterday costs a point of readiness rather than forcing a downshift.
+ * The program schedules back-to-back weekend play on purpose, so a hard rule
+ * would cancel every Sunday. A penalty still protects the day when you wake up
+ * beaten up, while letting you play when you feel good.
  */
 function adapt(
   scheduled: DayTemplate,
@@ -48,9 +53,10 @@ function adapt(
     return { template: scheduled, reason: null }
   }
 
-  const readiness = readinessScore(checkIn)
   const isDemanding =
     scheduled.emphasis === "strength" || scheduled.emphasis === "play"
+  const isBackToBack = checkIn.playedYesterday && isDemanding
+  const readiness = readinessScore(checkIn) - (isBackToBack ? 1 : 0)
 
   if (readiness <= 4) {
     return {
@@ -59,17 +65,12 @@ function adapt(
     }
   }
 
-  if (checkIn.playedYesterday && scheduled.emphasis === "play") {
-    return {
-      template: downshiftTarget(program),
-      reason: "You played yesterday, so today opens the hips instead.",
-    }
-  }
-
   if (readiness <= 6 && isDemanding) {
     return {
       template: downshiftTarget(program),
-      reason: `${scheduled.name} is scheduled, but today downshifts to mobility.`,
+      reason: isBackToBack
+        ? "You played yesterday and you are not fresh, so today opens the hips instead."
+        : `${scheduled.name} is scheduled, but today downshifts to mobility.`,
     }
   }
 

@@ -22,7 +22,8 @@ import { computeProgress, findNextAction } from "@/lib/progress"
 import { resolveDay } from "@/lib/resolve-day"
 
 const historyDays = 7
-const proteinStep = 10
+// 20g steps put the 160g target at eight taps, matching the water card.
+const proteinStep = 20
 
 export function TodayDashboard() {
   const today = useToday()

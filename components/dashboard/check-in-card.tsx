@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { HeartPulse, Pencil } from "lucide-react"
+import { Check, HeartPulse, Pencil } from "lucide-react"
 
 import { Card, CardHeading } from "@/components/dashboard/card"
 import { Button } from "@/components/ui/button"
@@ -44,7 +44,24 @@ export function CheckInCard({ checkIn, onSubmit }: CheckInCardProps) {
     playedYesterday: checkIn?.playedYesterday ?? false,
   }))
 
-  const isOpen = !checkIn || isEditing
+  /**
+   * A check-in already logged before this card mounted starts collapsed.
+   * One being filled in now stays open until it is dismissed.
+   *
+   * Collapsing the instant the third scale was answered hid the
+   * played-yesterday toggle, which sits below the scales and is exactly what
+   * the weekend rule reads. Answering top to bottom made the flag unreachable.
+   */
+  const [wasLoggedAtMount] = useState(() => checkIn !== null)
+  const [isDismissed, setIsDismissed] = useState(false)
+
+  const isOpen = isEditing || (!wasLoggedAtMount && !isDismissed)
+  const isComplete = Boolean(draft.sleep && draft.soreness && draft.energy)
+
+  function dismiss() {
+    setIsEditing(false)
+    setIsDismissed(true)
+  }
 
   function commitIfComplete(next: Draft) {
     if (next.sleep && next.soreness && next.energy) {
@@ -54,7 +71,6 @@ export function CheckInCard({ checkIn, onSubmit }: CheckInCardProps) {
         energy: next.energy,
         playedYesterday: next.playedYesterday,
       })
-      setIsEditing(false)
     }
   }
 
@@ -101,11 +117,26 @@ export function CheckInCard({ checkIn, onSubmit }: CheckInCardProps) {
       <CardHeading
         eyebrow="Morning check-in"
         title="How did you wake up?"
-        icon={HeartPulse}
+        icon={isComplete ? undefined : HeartPulse}
         iconClassName="text-alert"
+        action={
+          isComplete ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={dismiss}
+            >
+              <Check aria-hidden="true" />
+              Done
+            </Button>
+          ) : undefined
+        }
       />
       <p className="mt-2 text-sm leading-6 text-ink-subtle">
-        Three taps. This decides how hard today should be.
+        {isComplete
+          ? "Saved. Adjust anything below if you called it wrong."
+          : "Three taps. This decides how hard today should be."}
       </p>
 
       <div className="mt-4 flex flex-col gap-4">

@@ -58,11 +58,38 @@ The app persists checklist completion, water, protein, notes, and the morning ch
 
 Because local storage can be evicted by the browser, **export a backup now and then**. The button is on the dashboard.
 
+## The Week
+
+| Day | Focus |
+| --- | --- |
+| Monday | Full recovery — pay off the weekend |
+| Tuesday | Lower strength |
+| Wednesday | Mobility and reset |
+| Thursday | Push, pull, carry |
+| Friday | Easy movement — taper into the weekend |
+| Saturday | Court day |
+| Sunday | Court day two — longer warm-up, mandatory cool-down |
+
 ## How the Day Is Chosen
 
-`lib/program.ts` holds seven day templates. The date maps to a rotation slot, and `lib/resolve-day.ts` may downshift that template based on the morning check-in: low readiness forces a recovery day, and playing on consecutive court days switches to mobility. The header always shows what was scheduled and why it changed.
+`lib/program.ts` holds the seven day templates. The date maps to a rotation slot, and `lib/resolve-day.ts` may downshift that template based on the morning check-in.
+
+- Readiness of 4 or less forces a full recovery day.
+- Readiness of 6 or less downshifts anything demanding to mobility.
+- Playing yesterday costs one point of readiness on a demanding day. It is a penalty, not an override, because the weekend is back-to-back on purpose — a hard rule would cancel every Sunday.
+
+The header always shows what was scheduled and why it changed.
 
 Editing the plan means editing `lib/program.ts`. It is data, not components.
+
+## Targets
+
+Baselines for 6'0", 220 lb, 52-year-old male, set in [lib/dashboard-data.ts](lib/dashboard-data.ts):
+
+- **Protein 160g** — about 1.6g per kg. Deliberately at the upper end, because older muscle responds less to the same dose. Three meals plus one shake gets there.
+- **Water 12 glasses** (~2.8L), 14 on court days. Creatine raises fluid needs slightly; this covers it.
+
+These are starting points, not prescriptions. Move them once real days say so. Worth a word with your doctor if anything here is new, especially alongside new supplements.
 
 ## Documentation
 

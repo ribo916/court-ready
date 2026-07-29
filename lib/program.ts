@@ -1,8 +1,10 @@
 import type { DayTemplate, Program } from "@/types/dashboard"
 
 /**
- * A seven-slot rotation. Slot 0 lands on Monday (see `rotationIndex`), so the
- * week reads: build, play, recover, build, move, play, rest.
+ * A seven-slot rotation. Slot 0 lands on Monday (see `rotationIndex`).
+ *
+ * Built around playing on Saturday and Sunday: the week recovers from the
+ * weekend, builds midweek, tapers on Friday, then plays back-to-back.
  *
  * Templates are data, not code. Editing this list changes the plan.
  */
@@ -159,6 +161,54 @@ const courtDay: DayTemplate = {
   ],
 }
 
+/**
+ * Day two of a back-to-back weekend. Same game, but the warm-up matters more
+ * and the day carries an explicit post-play recovery obligation.
+ */
+const secondCourtDay: DayTemplate = {
+  id: "court-two",
+  name: "Court Day Two",
+  emphasis: "play",
+  intent:
+    "Second day on. Warm up longer, and stop one game earlier than you want to.",
+  icon: "target",
+  workout: {
+    title: "Play Prep, Day Two",
+    duration: "15 min",
+    intensity: "Moderate",
+    focus: "Yesterday's legs need more runway before the first serve.",
+    steps: [
+      "Easy walk or bike, 6 minutes",
+      "Leg swings and hip circles, 10 per side",
+      "Lateral shuffles, 3 x 20 seconds",
+      "Shadow dinks and light serves, 4 minutes",
+    ],
+  },
+  extraChecklist: [
+    {
+      id: "court-warmup",
+      label: "Warm up before game one",
+      detail: "Fifteen minutes today. Day two is when things tweak.",
+      time: "Pre-play",
+      category: "move",
+    },
+    {
+      id: "court-hydrate",
+      label: "Water between games",
+      detail: "A few sips every changeover, not all at the end.",
+      time: "During play",
+      category: "habit",
+    },
+    {
+      id: "court-cooldown",
+      label: "Cool down after the last game",
+      detail: "Five minutes of walking and a calf stretch. This is the week's hinge.",
+      time: "Post-play",
+      category: "recover",
+    },
+  ],
+}
+
 const easyMoveDay: DayTemplate = {
   id: "easy-move",
   name: "Easy Movement",
@@ -189,15 +239,15 @@ const easyMoveDay: DayTemplate = {
 }
 
 export const courtReadyProgram: Program = {
-  id: "court-ready-week-v1",
+  id: "court-ready-week-v2",
   name: "Court Ready Week",
   days: [
-    lowerStrengthDay, // Monday
-    courtDay, // Tuesday
+    recoveryDay, // Monday: pay off the weekend
+    lowerStrengthDay, // Tuesday
     mobilityDay, // Wednesday
     upperStrengthDay, // Thursday
-    easyMoveDay, // Friday
+    easyMoveDay, // Friday: taper into the weekend
     courtDay, // Saturday
-    recoveryDay, // Sunday
+    secondCourtDay, // Sunday
   ],
 }

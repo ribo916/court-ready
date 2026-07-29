@@ -14,32 +14,48 @@ function checkIn(
   return { sleep, soreness, energy, playedYesterday }
 }
 
-const monday = "2026-07-27"
-const tuesday = "2026-07-28" // court day
+const monday = "2026-07-27" // recovery
+const tuesday = "2026-07-28" // lower strength
 const wednesday = "2026-07-29" // mobility
-const sunday = "2026-08-02" // recovery
+const friday = "2026-07-31" // easy move
+const saturday = "2026-08-01" // court
+const sunday = "2026-08-02" // court, day two
 
 describe("scheduledTemplate", () => {
-  it("covers the whole week without repeating the rotation slot", () => {
+  it("plays on the weekend and recovers on Monday", () => {
     const week = [
-      "2026-07-27",
-      "2026-07-28",
-      "2026-07-29",
+      monday,
+      tuesday,
+      wednesday,
       "2026-07-30",
-      "2026-07-31",
-      "2026-08-01",
-      "2026-08-02",
+      friday,
+      saturday,
+      sunday,
     ].map((date) => scheduledTemplate(date).id)
 
     expect(week).toEqual([
+      "recovery",
       "strength-lower",
-      "court",
       "mobility",
       "strength-upper",
       "easy-move",
       "court",
-      "recovery",
+      "court-two",
     ])
+  })
+
+  it("schedules play only on Saturday and Sunday", () => {
+    const playDays = [
+      monday,
+      tuesday,
+      wednesday,
+      "2026-07-30",
+      friday,
+      saturday,
+      sunday,
+    ].filter((date) => scheduledTemplate(date).emphasis === "play")
+
+    expect(playDays).toEqual([saturday, sunday])
   })
 
   it("gives the same template on the same weekday a week later", () => {
@@ -60,7 +76,7 @@ describe("readinessScore", () => {
 
 describe("resolveDay without a check-in", () => {
   it("uses the scheduled template and reports no adaptation", () => {
-    const day = resolveDay(monday, null)
+    const day = resolveDay(tuesday, null)
 
     expect(day.template.id).toBe("strength-lower")
     expect(day.adapted).toBe(false)
@@ -71,7 +87,7 @@ describe("resolveDay without a check-in", () => {
 
 describe("resolveDay adaptation", () => {
   it("forces full recovery when readiness bottoms out", () => {
-    const day = resolveDay(monday, checkIn(1, 1, 1))
+    const day = resolveDay(tuesday, checkIn(1, 1, 1))
 
     expect(day.template.id).toBe("recovery")
     expect(day.adapted).toBe(true)
@@ -80,25 +96,50 @@ describe("resolveDay adaptation", () => {
   })
 
   it("downshifts a strength day when readiness is middling", () => {
-    const day = resolveDay(monday, checkIn(2, 2, 2))
+    const day = resolveDay(tuesday, checkIn(2, 2, 2))
 
     expect(day.scheduled.id).toBe("strength-lower")
     expect(day.template.id).toBe("mobility")
     expect(day.adapted).toBe(true)
   })
 
-  it("downshifts back-to-back court days", () => {
-    const day = resolveDay(tuesday, checkIn(3, 3, 3, true))
+  it("keeps a court day when you are fresh", () => {
+    const day = resolveDay(saturday, checkIn(3, 3, 3, false))
 
-    expect(day.scheduled.id).toBe("court")
+    expect(day.template.id).toBe("court")
+    expect(day.adapted).toBe(false)
+  })
+
+  it("still lets you play Sunday after a good Saturday", () => {
+    // The weekend is back-to-back on purpose. A hard rule here would cancel
+    // every Sunday, which is the opposite of what the program schedules.
+    const day = resolveDay(sunday, checkIn(3, 3, 3, true))
+
+    expect(day.template.id).toBe("court-two")
+    expect(day.adapted).toBe(false)
+  })
+
+  it("downshifts Sunday when Saturday left you beaten up", () => {
+    const day = resolveDay(sunday, checkIn(2, 2, 3, true))
+
+    expect(day.scheduled.id).toBe("court-two")
     expect(day.template.id).toBe("mobility")
     expect(day.adaptationReason).toMatch(/played yesterday/i)
   })
 
-  it("keeps a court day when you are fresh and did not play yesterday", () => {
-    const day = resolveDay(tuesday, checkIn(3, 3, 3, false))
+  it("treats playing yesterday as one point of readiness, not an override", () => {
+    // Readiness 8 survives the penalty; the same day without it also plays.
+    expect(resolveDay(sunday, checkIn(3, 3, 2, true)).template.id).toBe("court-two")
+    // Readiness 7 drops to 6 and downshifts.
+    expect(resolveDay(sunday, checkIn(3, 2, 2, true)).template.id).toBe("mobility")
+    // Without the penalty, readiness 7 is enough to play.
+    expect(resolveDay(sunday, checkIn(3, 2, 2, false)).template.id).toBe("court-two")
+  })
 
-    expect(day.template.id).toBe("court")
+  it("ignores playing yesterday on a day that asks nothing", () => {
+    const day = resolveDay(monday, checkIn(2, 2, 3, true))
+
+    expect(day.template.id).toBe("recovery")
     expect(day.adapted).toBe(false)
   })
 
@@ -111,20 +152,20 @@ describe("resolveDay adaptation", () => {
   })
 
   it("does not upshift a recovery day when you feel great", () => {
-    const day = resolveDay(sunday, checkIn(3, 3, 3))
+    const day = resolveDay(monday, checkIn(3, 3, 3))
 
     expect(day.template.id).toBe("recovery")
     expect(day.adapted).toBe(false)
   })
 
-  it("reports readiness whenever a check-in exists", () => {
-    expect(resolveDay(monday, checkIn(3, 2, 2)).readiness).toBe(7)
+  it("reports the readiness you actually reported, before any penalty", () => {
+    expect(resolveDay(sunday, checkIn(3, 2, 2, true)).readiness).toBe(7)
   })
 })
 
 describe("resolveDay checklist", () => {
   it("keeps the base anchors and appends the template's extras", () => {
-    const day = resolveDay(monday, null)
+    const day = resolveDay(tuesday, null)
     const ids = day.checklist.map((item) => item.id)
 
     for (const anchor of baseChecklist) {
@@ -134,8 +175,17 @@ describe("resolveDay checklist", () => {
     expect(ids).toContain("strength-post-protein")
   })
 
+  it("adds a cool-down obligation to the second court day only", () => {
+    expect(
+      resolveDay(sunday, null).checklist.map((item) => item.id)
+    ).toContain("court-cooldown")
+    expect(
+      resolveDay(saturday, null).checklist.map((item) => item.id)
+    ).not.toContain("court-cooldown")
+  })
+
   it("ends the day with the evening downshift", () => {
-    const day = resolveDay(tuesday, null)
+    const day = resolveDay(saturday, null)
 
     expect(day.checklist[day.checklist.length - 1].id).toBe("evening-downshift")
   })
@@ -154,15 +204,16 @@ describe("resolveDay checklist", () => {
 })
 
 describe("resolveDay targets", () => {
-  it("raises the water target on court days only", () => {
-    expect(resolveDay(tuesday, null).waterTarget).toBe(10)
-    expect(resolveDay(monday, null).waterTarget).toBe(8)
+  it("raises the water target on both court days only", () => {
+    expect(resolveDay(saturday, null).waterTarget).toBe(14)
+    expect(resolveDay(sunday, null).waterTarget).toBe(14)
+    expect(resolveDay(tuesday, null).waterTarget).toBe(12)
   })
 
   it("uses the downshifted template's target after adaptation", () => {
-    const day = resolveDay(tuesday, checkIn(3, 3, 3, true))
+    const day = resolveDay(sunday, checkIn(2, 2, 3, true))
 
     expect(day.template.id).toBe("mobility")
-    expect(day.waterTarget).toBe(8)
+    expect(day.waterTarget).toBe(12)
   })
 })

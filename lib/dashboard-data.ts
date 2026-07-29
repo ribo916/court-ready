@@ -1,7 +1,20 @@
 import type { DashboardItem, RoutineItem, Supplement } from "@/types/dashboard"
 
-export const waterTarget = 8
-export const proteinTarget = 130
+/**
+ * Baselines for a 6'0", 220 lb, 52-year-old male playing on weekends.
+ *
+ * Water: 12 x 8oz glasses is about 2.8L, in the usual range for this bodyweight.
+ * Court days add two (see `resolveDay`). Creatine raises fluid needs slightly,
+ * which this already covers.
+ *
+ * Protein: 160g is roughly 1.6g per kg of bodyweight. Protein needs rise with
+ * age because older muscle responds less to the same dose, so this sits at the
+ * upper end deliberately. It is achievable with three meals plus one shake.
+ *
+ * These are starting points, not prescriptions. Move them once real days say so.
+ */
+export const waterTarget = 12
+export const proteinTarget = 160
 
 /** Anchors that repeat every day regardless of which template is scheduled. */
 export const baseChecklist: DashboardItem[] = [
@@ -37,22 +50,22 @@ export const baseChecklist: DashboardItem[] = [
 
 export const supplements: Supplement[] = [
   {
-    id: "vitamin-d",
-    name: "Vitamin D",
+    id: "multivitamin",
+    name: "Multivitamin",
     timing: "With breakfast",
-    note: "Take with food.",
+    note: "Take with food so it absorbs and does not turn your stomach.",
   },
   {
-    id: "omega-3",
-    name: "Omega-3",
-    timing: "With lunch",
-    note: "Pair with a meal.",
+    id: "creatine",
+    name: "Creatine",
+    timing: "Any time",
+    note: "5g every day, training or not. Timing does not matter, consistency does.",
   },
   {
-    id: "magnesium",
-    name: "Magnesium",
-    timing: "Evening",
-    note: "Keep it part of the wind-down.",
+    id: "protein-shake",
+    name: "Protein shake",
+    timing: "Post-workout or gap-filler",
+    note: "The simplest 25-30g toward today's target. Log the grams below too.",
   },
 ]
 

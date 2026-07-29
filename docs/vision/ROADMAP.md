@@ -56,6 +56,8 @@ Version 0.1: Today's Dashboard. Greeting, next action, checklist, workout, suppl
 
 - The program rotation is fixed in `lib/program.ts`. Editing the plan means editing code.
 - Adaptation rules are opinionated and not explained in the UI beyond a single sentence.
+- Adaptation thresholds (4 and 6) and the played-yesterday penalty of 1 are untuned guesses. They need two weeks of real check-ins before they mean anything.
+- Targets are hardcoded constants. If bodyweight or goals move, so must `lib/dashboard-data.ts`.
 - The history strip shows completion only, not load, soreness, or trends worth acting on.
 - Protein is tracked in 10g steps with no food detail, by design. Revisit only if it stops being useful.
 
@@ -64,3 +66,4 @@ Version 0.1: Today's Dashboard. Greeting, next action, checklist, workout, suppl
 - 0.1: Established project foundation, documentation, PWA setup, and the first Today's Dashboard.
 - 0.1.1: Hardened PWA behavior so service workers do not interfere with Next.js development.
 - 0.2: Program rotation, morning check-in, adaptive days, durable versioned storage with export and restore, history strip, design tokens with dark mode, and the first test suite.
+- 0.2.1: Personalised the plan to weekend play, raised protein and water targets to the athlete's stats, replaced the supplement stack, and changed the played-yesterday rule from an override to a readiness penalty so it stops cancelling every Sunday.
